@@ -11,8 +11,8 @@ module.exports.copy = async (req, res) => {
 
   }
 
-  for (file of $set.fileList) {
-    ncp(`${$set.path}/${file}`, `${$set.pathTo}/${file}`, callback)
+  for (item of $set.itemList) {
+    ncp(`${$set.path}/${item}`, `${$set.pathTo}/${item}`, callback)
   }
 
 }

@@ -3,20 +3,31 @@ const fs = require('fs')
 module.exports.directory = async (req, res) => {
   try {
     const path = req.params.path.split('|').join('/') + '/'
-    const dirIterable = await fs.promises.opendir(path);
-    let dirName = []
-    for await (const dirent of dirIterable) {
-      dirName.push({ ...dirent });
+    const directoryIterable = await fs.promises.opendir(path);
+    let itemsNameList = []
+
+    for await (const name of directoryIterable) {
+      itemsNameList.push({ ...name });
     }
-    let promisesStats = await Promise.allSettled(dirName.map(dir => {
-      return fs.promises.lstat(path + dir.name)
-    }))
-    const dirNameStats = []
-    for (index in promisesStats) {
-      if (promisesStats[index].status === 'fulfilled')
-        dirNameStats.push({ ...promisesStats[index].value, name: dirName[index].name })
+
+    let promisesListStats = await Promise.allSettled(
+      itemsNameList.map(item => {
+        return fs.promises.lstat(path + item.name)
+      }
+      )
+    )
+
+    const itemsNameStats = []
+
+    for (index in promisesListStats) {
+      if (promisesListStats[index].status === 'fulfilled')
+        itemsNameStats.push({
+          ...promisesListStats[index].value,
+          name: itemsNameList[index].name,
+          isDirectory: promisesListStats[index].value.isDirectory()
+        })
     }
-    res.json(dirNameStats)
+    res.json(itemsNameStats)
   } catch (error) {
     res.status(500).json(error)
   }
